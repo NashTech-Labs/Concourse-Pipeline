@@ -1,0 +1,64 @@
+---
+resources:
+- name: demo-repo
+  type: git
+  source:
+    branch: master
+    uri: https://github.com/knoldus/dockerize-selenium-with-jenkins.git
+
+jobs:
+- name: Run-automatically #this job will trigger automatically as flag trigger is true
+  plan:
+  - get: demo-repo
+    trigger: true
+  - task: do-your-task-here
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ubuntu
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          echo "This job is automatically triggered upon any version change in the resource."
+- name: Manually-trigger-me  #this job will trigger automatically as flag trigger is true
+  plan:
+  - get: demo-repo
+    passed:
+      - Run-automatically
+    trigger: false
+  - task: do-your-manual-task-here
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ubuntu
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          echo "Output of your manually triggered task."
+- name: Do-more-stuff-after-manual-trigger #this job will not trigger automatically as flag trigger is false
+  plan:
+  - get: demo-repo
+    passed:
+      - Manually-trigger-me
+    trigger: true
+  - task: do-other-tasks-here
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ubuntu
+      run:
+        path: sh
+        args:
+        - -exc
+        - |
+          echo "Output of your other tasks."
